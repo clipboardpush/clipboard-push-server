@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  server:
+    build: .
+    ports:
+      - "5055:5055"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Login | Clipboard Man{% endblock %}
+{% block body_class %}page-login{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <section class="auth-panel" aria-hidden="true">
+        <p class="kicker">Clipboard Push Plus</p>
+        <h1>Secure Relay Control</h1>
+        <p>Realtime visibility and control for your clipboard relay network.</p>
+        <ul>
+            <li>Live session metrics</li>
+            <li>Room-based client monitoring</li>
+            <li>Operator activity stream</li>
+        </ul>
+    </section>
+
+    <section class="auth-card" aria-labelledby="auth-title">
+        <header>
+            <p class="kicker">Operator Login</p>
+            <h2 id="auth-title">Authenticate Access</h2>
+            <p class="text-meta">Use your admin password to enter the dashboard.</p>
+        </header>
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="password">Access Code</label>
+                <input id="password" type="password" name="password" required autofocus autocomplete="current-password">
+            </div>
+
+            <label class="checkbox-wrap" for="remember">
+                <input id="remember" type="checkbox" name="remember">
+                <span>Keep me signed in on this device</span>
+            </label>
+
+            <button type="submit" class="btn btn-primary">Authenticate</button>
+        </form>
+
+        <footer class="auth-footer">Secure Relay Server v2.0</footer>
+    </section>
+</div>
+{% endblock %}
