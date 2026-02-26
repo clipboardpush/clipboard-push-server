@@ -48,9 +48,8 @@ Copy `.env.example` to `.env` and fill in the following:
 ## Architecture
 
 ```
-Android App  ──┐
-               ├─── Socket.IO ───► Relay Server ◄─── Socket.IO ───  PC Client
-PC Client    ──┘                        │
+Android App  ────── Socket.IO ───► Relay Server ◄─── Socket.IO ───  PC Client
+                                        │
                                         └── R2 (file storage, optional)
 ```
 
