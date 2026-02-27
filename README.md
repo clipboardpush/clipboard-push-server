@@ -68,8 +68,8 @@ Clients must include `"protocol_version": "4.0"` in file transfer events. See [R
 
 | Client | Link |
 |---|---|
-| Android | [Google Play](https://play.google.com/store/apps/details?id=com.clipboardpush.plus) — source on GitHub |
-| PC (Windows/macOS/Linux) | Coming soon |
+| Android | [Google Play](https://play.google.com/store/apps/details?id=com.clipboardpush.plus) — [source on GitHub](https://github.com/clipboardpush/clipboard-push-android) |
+| PC (Windows) | [clipboard-push-win32](https://github.com/clipboardpush/clipboard-push-win32) |
 
 ## Contributing
 
