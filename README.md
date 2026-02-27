@@ -48,13 +48,13 @@ Copy `.env.example` to `.env` and fill in the following:
 ## Architecture
 
 ```
-Android App  ────── Socket.IO ───► Relay Server ◄─── Socket.IO ───  PC Client
-                                        │
-                                        └── R2 (file storage, optional)
+Android App  ── Socket.IO (AES-256-GCM encrypted) ──► Relay Server ◄── Socket.IO (AES-256-GCM encrypted) ──  PC Client
+                                                            │
+                                                            └── R2 (file storage, optional)
 ```
 
 - Clients connect to a shared **room** (identified by a room ID you set in the app)
-- Text clipboard content is AES-256-GCM encrypted on the device — the server relays ciphertext only
+- Text clipboard content is **AES-256-GCM encrypted** on the device — the server relays ciphertext only
 - For files, the server orchestrates a **LAN-first pull** flow: PC serves the file locally, Android pulls directly; if that fails, the file is uploaded to R2 and downloaded via pre-signed URL
 - The admin dashboard is accessible at `http://your-server:5055/dashboard` (login with `ADMIN_PASSWORD`)
 
