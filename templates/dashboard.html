@@ -26,10 +26,6 @@
 
         <footer class="sidebar-footer">
             <p class="text-meta">Signed in as <strong>{{ current_user.id }}</strong></p>
-            <div class="sidebar-footer-actions">
-                <button type="button" class="btn btn-outline btn-mini" id="open-change-pw">Change Password</button>
-                <a class="btn btn-outline btn-mini" href="{{ url_for('logout') }}">Logout</a>
-            </div>
         </footer>
     </aside>
 
@@ -39,9 +35,13 @@
                 <p class="kicker">Room Scope</p>
                 <h2 id="current-room-title">All Rooms Overview</h2>
             </div>
-            <div class="connection-pill" id="connection-pill">
-                <span class="status-indicator" id="connection-status" aria-hidden="true"></span>
-                <span id="connection-text">Offline</span>
+            <div class="header-right">
+                <button type="button" class="btn btn-outline btn-mini" id="open-change-pw">Change Password</button>
+                <a class="btn btn-outline btn-mini" href="{{ url_for('logout') }}">Logout</a>
+                <div class="connection-pill" id="connection-pill">
+                    <span class="status-indicator" id="connection-status" aria-hidden="true"></span>
+                    <span id="connection-text">Offline</span>
+                </div>
             </div>
         </header>
 

@@ -393,6 +393,13 @@ input::placeholder {
     font-size: 2rem;
 }
 
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
 .connection-pill {
     display: inline-flex;
     align-items: center;
