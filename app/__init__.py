@@ -3,6 +3,11 @@ import os
 
 from dotenv import load_dotenv
 load_dotenv()
+# Load writable override file (data/settings.env) after main .env so it takes precedence
+# This allows settings saved via the dashboard to work on read-only NAS mounts
+import os as _os_init
+_settings_override = _os_init.path.join(_os_init.path.abspath(_os_init.path.dirname(__file__)), '..', 'data', 'settings.env')
+load_dotenv(_settings_override, override=True)
 
 import boto3
 import urllib3
@@ -26,6 +31,7 @@ from .settings import (
     ADMIN_PASSWORD,
     DASHBOARD_R2_BUCKET,
     DOTENV_PATH,
+    SETTINGS_OVERRIDE_PATH,
     FLASK_SECRET_KEY,
     LOCAL_STORAGE_BASE_URL,
     LOCAL_STORAGE_PATH,
@@ -155,7 +161,7 @@ register_routes(
     LOCAL_STORAGE_BASE_URL=LOCAL_STORAGE_BASE_URL,
     local_write_file=local_write_file,
     local_read_file=local_read_file,
-    DOTENV_PATH=DOTENV_PATH,
+    DOTENV_PATH=SETTINGS_OVERRIDE_PATH,
 )
 
 register_socket_events(

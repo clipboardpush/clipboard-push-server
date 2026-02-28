@@ -4,6 +4,8 @@ import os
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 DOTENV_PATH = os.path.join(BASE_DIR, '.env')
+# Writable override file — stored in data/ so it works on read-only NAS mounts
+SETTINGS_OVERRIDE_PATH = os.path.join(DATA_DIR, 'settings.env')
 PASSWORD_HASH_FILE = os.path.join(DATA_DIR, 'admin_password.hash')
 
 R2_ACCOUNT_ID = os.environ.get('R2_ACCOUNT_ID', 'YOUR_ACCOUNT_ID_HERE')
