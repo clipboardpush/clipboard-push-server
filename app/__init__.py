@@ -25,6 +25,7 @@ from .services.local_storage_service import (
 from .settings import (
     ADMIN_PASSWORD,
     DASHBOARD_R2_BUCKET,
+    DOTENV_PATH,
     FLASK_SECRET_KEY,
     LOCAL_STORAGE_BASE_URL,
     LOCAL_STORAGE_PATH,
@@ -154,6 +155,7 @@ register_routes(
     LOCAL_STORAGE_BASE_URL=LOCAL_STORAGE_BASE_URL,
     local_write_file=local_write_file,
     local_read_file=local_read_file,
+    DOTENV_PATH=DOTENV_PATH,
 )
 
 register_socket_events(

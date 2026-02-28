@@ -1,5 +1,6 @@
 import time as pytime
 
+from dotenv import set_key
 from flask import request, jsonify, render_template, redirect, url_for, flash, send_from_directory, Response
 from flask_login import current_user, login_user, login_required, logout_user
 from werkzeug.security import generate_password_hash
@@ -30,6 +31,7 @@ def register_routes(
     LOCAL_STORAGE_BASE_URL,
     local_write_file,
     local_read_file,
+    DOTENV_PATH,
 ):
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -199,6 +201,52 @@ def register_routes(
         if data is None:
             return jsonify({'error': 'File not found'}), 404
         return Response(data, content_type=content_type)
+
+    # Keys exposed in the settings UI (excludes FLASK_SECRET_KEY, ADMIN_PASSWORD)
+    _SETTINGS_KEYS = [
+        'STORAGE_BACKEND',
+        'LOCAL_STORAGE_BASE_URL',
+        'LOCAL_STORAGE_PATH',
+        'R2_ACCOUNT_ID',
+        'R2_ACCESS_KEY_ID',
+        'R2_SECRET_ACCESS_KEY',
+        'R2_BUCKET_NAME',
+        'DASHBOARD_R2_BUCKET',
+        'FLASK_DEBUG',
+        'FIREBASE_CREDENTIALS_PATH',
+    ]
+    _SECRET_KEYS = {'R2_SECRET_ACCESS_KEY'}
+
+    import os as _os
+
+    @app.route('/api/settings', methods=['GET'])
+    @login_required
+    def get_settings():
+        values = {}
+        for key in _SETTINGS_KEYS:
+            val = _os.environ.get(key, '')
+            if key in _SECRET_KEYS and val:
+                values[key] = val[:4] + '*' * max(0, len(val) - 4)
+            else:
+                values[key] = val
+        return jsonify(values)
+
+    @app.route('/api/settings', methods=['POST'])
+    @login_required
+    def save_settings():
+        data = request.json or {}
+        saved = []
+        for key in _SETTINGS_KEYS:
+            if key not in data:
+                continue
+            val = str(data[key]).strip()
+            # Skip masked secret placeholder — user didn't change it
+            if key in _SECRET_KEYS and set(val[4:]) == {'*'}:
+                continue
+            set_key(DOTENV_PATH, key, val)
+            saved.append(key)
+        logger.info(f'Settings updated via dashboard: {saved}')
+        return jsonify({'saved': saved, 'restart_required': True})
 
     @app.route('/api/relay', methods=['POST'])
     def relay_message():

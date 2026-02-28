@@ -951,6 +951,68 @@ input::placeholder {
     padding: 24px;
 }
 
+.modal-box-wide {
+    width: min(600px, 92vw);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body {
+    overflow-y: auto;
+    flex: 1;
+    margin: 12px 0;
+    padding-right: 4px;
+}
+
+.settings-restart-note {
+    margin-bottom: 16px;
+}
+
+.settings-section {
+    border-top: 1px solid var(--line-soft);
+    padding-top: 14px;
+    margin-bottom: 16px;
+}
+
+.settings-section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.settings-input {
+    width: 100%;
+    background: var(--bg-0);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 7px 10px;
+    font-size: 0.88rem;
+    font-family: var(--font-mono);
+}
+
+.settings-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-group-inline label {
+    margin-bottom: 0;
+}
+
+.settings-save-msg {
+    flex: 1;
+}
+
 .modal-header {
     display: flex;
     align-items: center;
