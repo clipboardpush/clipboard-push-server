@@ -1,6 +1,6 @@
 import time as pytime
 
-from flask import request, jsonify, render_template, redirect, url_for, flash, send_from_directory
+from flask import request, jsonify, render_template, redirect, url_for, flash, send_from_directory, Response
 from flask_login import current_user, login_user, login_required, logout_user
 from werkzeug.security import generate_password_hash
 
@@ -25,6 +25,11 @@ def register_routes(
     emit_activity_log,
     verify_password,
     PASSWORD_HASH_FILE,
+    STORAGE_BACKEND,
+    LOCAL_STORAGE_PATH,
+    LOCAL_STORAGE_BASE_URL,
+    local_write_file,
+    local_read_file,
 ):
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -137,6 +142,15 @@ def register_routes(
 
         object_name = f"{int(pytime.time())}_{filename}"
 
+        if STORAGE_BACKEND == 'local':
+            base = LOCAL_STORAGE_BASE_URL.rstrip('/')
+            return jsonify({
+                'upload_url': f"{base}/api/file/upload/{object_name}",
+                'download_url': f"{base}/api/file/download/{object_name}",
+                'file_key': object_name,
+                'expires_in': 300,
+            })
+
         try:
             presigned_url = s3_client.generate_presigned_url(
                 'put_object',
@@ -154,17 +168,37 @@ def register_routes(
                 ExpiresIn=3600,
             )
 
-            return jsonify(
-                {
-                    'upload_url': presigned_url,
-                    'download_url': download_url,
-                    'file_key': object_name,
-                    'expires_in': 300,
-                }
-            )
+            return jsonify({
+                'upload_url': presigned_url,
+                'download_url': download_url,
+                'file_key': object_name,
+                'expires_in': 300,
+            })
         except Exception as e:
             logger.error(f"Error generating presigned URL: {e}")
             return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/file/upload/<path:file_key>', methods=['PUT'])
+    def local_file_upload(file_key):
+        if STORAGE_BACKEND != 'local':
+            return jsonify({'error': 'Local storage not enabled'}), 404
+        content_type = request.content_type or 'application/octet-stream'
+        try:
+            local_write_file(LOCAL_STORAGE_PATH, file_key, request.get_data(), content_type)
+            logger.info(f"Local upload: {file_key} ({len(request.data)} bytes)")
+            return '', 200
+        except Exception as e:
+            logger.error(f"Local upload failed: {e}")
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/file/download/<path:file_key>', methods=['GET'])
+    def local_file_download(file_key):
+        if STORAGE_BACKEND != 'local':
+            return jsonify({'error': 'Local storage not enabled'}), 404
+        data, content_type = local_read_file(LOCAL_STORAGE_PATH, file_key)
+        if data is None:
+            return jsonify({'error': 'File not found'}), 404
+        return Response(data, content_type=content_type)
 
     @app.route('/api/relay', methods=['POST'])
     def relay_message():

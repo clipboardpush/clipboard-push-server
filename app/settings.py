@@ -23,3 +23,8 @@ FLASK_SECRET_KEY = _flask_secret or 'dev_secret_key'
 
 # FCM: path to Firebase service account JSON (leave empty to disable FCM)
 FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH', '')
+
+# File storage backend: 'r2' (default) or 'local'
+STORAGE_BACKEND = os.environ.get('STORAGE_BACKEND', 'r2')
+LOCAL_STORAGE_PATH = os.environ.get('LOCAL_STORAGE_PATH', os.path.join(DATA_DIR, 'uploads'))
+LOCAL_STORAGE_BASE_URL = os.environ.get('LOCAL_STORAGE_BASE_URL', 'http://localhost:5055')

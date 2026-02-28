@@ -14,16 +14,26 @@ from flask_socketio import SocketIO
 from .auth import User, load_password_hash, register_user_loader, verify_password
 from .route import register_routes
 from .services.r2_service import empty_r2_bucket, get_r2_bucket_usage
+from .services.local_storage_service import (
+    ensure_storage_dir,
+    make_file_key,
+    purge_old_files,
+    read_file as local_read_file,
+    write_file as local_write_file,
+)
 
 from .settings import (
     ADMIN_PASSWORD,
     DASHBOARD_R2_BUCKET,
     FLASK_SECRET_KEY,
+    LOCAL_STORAGE_BASE_URL,
+    LOCAL_STORAGE_PATH,
     PASSWORD_HASH_FILE,
     R2_ACCESS_KEY_ID,
     R2_ACCOUNT_ID,
     R2_BUCKET_NAME,
     R2_SECRET_ACCESS_KEY,
+    STORAGE_BACKEND,
 )
 from .signal_core import (
     ALLOWED_ACTIVITY_TYPES,
@@ -100,12 +110,16 @@ s3_client = boto3.client(
     verify=False,
 )
 
-try:
-    logger.info(f'Verifying R2 Connection to bucket: {R2_BUCKET_NAME}...')
-    s3_client.head_bucket(Bucket=R2_BUCKET_NAME)
-    logger.info('R2 Connection Successful!')
-except Exception as e:
-    logger.error(f'R2 Connection Failed: {e}')
+if STORAGE_BACKEND == 'local':
+    ensure_storage_dir(LOCAL_STORAGE_PATH)
+    logger.info(f'Storage backend: local ({LOCAL_STORAGE_PATH})')
+else:
+    try:
+        logger.info(f'Verifying R2 Connection to bucket: {R2_BUCKET_NAME}...')
+        s3_client.head_bucket(Bucket=R2_BUCKET_NAME)
+        logger.info('R2 Connection Successful!')
+    except Exception as e:
+        logger.error(f'R2 Connection Failed: {e}')
 
 
 def get_r2_bucket_usage_bound(bucket_name):
@@ -135,6 +149,11 @@ register_routes(
     emit_activity_log=emit_activity_log,
     verify_password=verify_password,
     PASSWORD_HASH_FILE=PASSWORD_HASH_FILE,
+    STORAGE_BACKEND=STORAGE_BACKEND,
+    LOCAL_STORAGE_PATH=LOCAL_STORAGE_PATH,
+    LOCAL_STORAGE_BASE_URL=LOCAL_STORAGE_BASE_URL,
+    local_write_file=local_write_file,
+    local_read_file=local_read_file,
 )
 
 register_socket_events(
@@ -182,25 +201,34 @@ register_socket_events(
 _R2_CLEANUP_INTERVAL_S = 3600  # 60 minutes
 
 
-def _r2_cleanup_worker():
+def _cleanup_worker():
     import time
-    logger.info(f'R2 cleanup scheduler started (interval: {_R2_CLEANUP_INTERVAL_S}s)')
+    logger.info(f'Cleanup scheduler started (interval: {_R2_CLEANUP_INTERVAL_S}s, backend: {STORAGE_BACKEND})')
     while True:
         time.sleep(_R2_CLEANUP_INTERVAL_S)
-        try:
-            result = empty_r2_bucket_bound(R2_BUCKET_NAME)
-            logger.info(
-                f'R2 scheduled cleanup: deleted {result["deleted_objects"]} objects, '
-                f'reclaimed {result["reclaimed_human"]}'
-            )
-        except Exception as e:
-            logger.error(f'R2 scheduled cleanup failed: {e}')
+        if STORAGE_BACKEND == 'local':
+            try:
+                deleted = purge_old_files(LOCAL_STORAGE_PATH, max_age_s=_R2_CLEANUP_INTERVAL_S)
+                logger.info(f'Local storage cleanup: deleted {deleted} expired files')
+            except Exception as e:
+                logger.error(f'Local storage cleanup failed: {e}')
+        else:
+            try:
+                result = empty_r2_bucket_bound(R2_BUCKET_NAME)
+                logger.info(
+                    f'R2 scheduled cleanup: deleted {result["deleted_objects"]} objects, '
+                    f'reclaimed {result["reclaimed_human"]}'
+                )
+            except Exception as e:
+                logger.error(f'R2 scheduled cleanup failed: {e}')
 
 
-if R2_ACCOUNT_ID != 'YOUR_ACCOUNT_ID_HERE' and R2_BUCKET_NAME:
-    socketio.start_background_task(_r2_cleanup_worker)
+_r2_ready = STORAGE_BACKEND == 'r2' and R2_ACCOUNT_ID != 'YOUR_ACCOUNT_ID_HERE' and R2_BUCKET_NAME
+_local_ready = STORAGE_BACKEND == 'local'
+if _r2_ready or _local_ready:
+    socketio.start_background_task(_cleanup_worker)
 else:
-    logger.info('R2 not configured — scheduled cleanup disabled')
+    logger.info('No storage backend configured — scheduled cleanup disabled')
 
 
 __all__ = ['app', 'socketio']
