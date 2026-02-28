@@ -10,6 +10,7 @@ A self-hosted relay server for the [Clipboard Push](https://clipboardpush.com) a
 - **Cloudflare R2 file relay** — temporary pre-signed URLs for cross-network file transfers
 - **Admin dashboard** — view connected devices, room states, transfer activity, and live logs
 - **Room-based routing** — up to 2 devices per room; oldest device is evicted when limit exceeded
+- **Automatic R2 cleanup** — bucket purged every 60 minutes to minimise storage costs
 - **Docker support** — single `docker-compose up` deployment
 
 ## Quick Start (Docker)
@@ -44,6 +45,8 @@ Copy `.env.example` to `.env` and fill in the following:
 | `FLASK_DEBUG` | No | Set to `1` for debug mode (never use in production) |
 
 **Text-only mode:** If you don't configure R2, the server works fine for clipboard text sync. File transfer will be unavailable.
+
+**R2 scheduled cleanup:** When R2 is configured, the server automatically deletes all objects from the bucket every 60 minutes. This keeps storage costs near zero since transferred files are only needed briefly during the transfer window.
 
 ## Architecture
 

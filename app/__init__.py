@@ -179,6 +179,30 @@ register_socket_events(
 )
 
 
+_R2_CLEANUP_INTERVAL_S = 3600  # 60 minutes
+
+
+def _r2_cleanup_worker():
+    import time
+    logger.info(f'R2 cleanup scheduler started (interval: {_R2_CLEANUP_INTERVAL_S}s)')
+    while True:
+        time.sleep(_R2_CLEANUP_INTERVAL_S)
+        try:
+            result = empty_r2_bucket_bound(R2_BUCKET_NAME)
+            logger.info(
+                f'R2 scheduled cleanup: deleted {result["deleted_objects"]} objects, '
+                f'reclaimed {result["reclaimed_human"]}'
+            )
+        except Exception as e:
+            logger.error(f'R2 scheduled cleanup failed: {e}')
+
+
+if R2_ACCOUNT_ID != 'YOUR_ACCOUNT_ID_HERE' and R2_BUCKET_NAME:
+    socketio.start_background_task(_r2_cleanup_worker)
+else:
+    logger.info('R2 not configured — scheduled cleanup disabled')
+
+
 __all__ = ['app', 'socketio']
 
 
