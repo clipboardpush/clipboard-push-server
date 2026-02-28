@@ -108,6 +108,8 @@ def register_routes(
     @app.route('/api/dashboard/r2_usage', methods=['GET'])
     @login_required
     def api_dashboard_r2_usage():
+        if not DASHBOARD_R2_BUCKET:
+            return jsonify({'error': 'R2 not configured (DASHBOARD_R2_BUCKET is empty)'}), 503
         try:
             usage = get_r2_bucket_usage(DASHBOARD_R2_BUCKET)
             usage['updated_at_epoch_ms'] = int(pytime.time() * 1000)
@@ -119,6 +121,8 @@ def register_routes(
     @app.route('/api/dashboard/r2_empty', methods=['POST'])
     @login_required
     def api_dashboard_r2_empty():
+        if not DASHBOARD_R2_BUCKET:
+            return jsonify({'error': 'R2 not configured (DASHBOARD_R2_BUCKET is empty)'}), 503
         try:
             result = empty_r2_bucket(DASHBOARD_R2_BUCKET)
             usage = get_r2_bucket_usage(DASHBOARD_R2_BUCKET)
@@ -238,7 +242,8 @@ def register_routes(
         saved = []
         # Keys that should not be saved as empty (keep default instead)
         _REQUIRED_IF_SET = {'LOCAL_STORAGE_PATH', 'LOCAL_STORAGE_BASE_URL',
-                            'R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_BUCKET_NAME'}
+                            'R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_BUCKET_NAME',
+                            'DASHBOARD_R2_BUCKET'}
         try:
             for key in _SETTINGS_KEYS:
                 if key not in data:
