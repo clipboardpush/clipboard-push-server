@@ -1,6 +1,6 @@
 # Clipboard Push Server
 
-A self-hosted relay server for the [Clipboard Push](https://clipboardpush.com) app. It relays encrypted clipboard text and files between Android and PC clients in real time — over the internet via the relay, or directly over LAN when both devices are on the same network. All clipboard content is AES-256-GCM encrypted on the device before transmission; the server only sees ciphertext.
+A self-hosted relay server for the [Clipboard Push](https://clipboardpush.com) app. It relays encrypted clipboard text and files between mobile and PC clients in real time — over the internet via the relay, or directly over LAN when both devices are on the same network. All clipboard content is AES-256-GCM encrypted on the device before transmission; the server only sees ciphertext.
 
 ## Features
 
@@ -59,14 +59,14 @@ Copy `.env.example` to `.env` and fill in the following:
 ## Architecture
 
 ```
-Android App  ── Socket.IO (AES-256-GCM encrypted) ──► Relay Server ◄── Socket.IO (AES-256-GCM encrypted) ──  PC Client
+Mobile App  ── Socket.IO (AES-256-GCM encrypted) ──► Relay Server ◄── Socket.IO (AES-256-GCM encrypted) ──  PC Client
                                                             │
                                                             └── R2 or local disk (file storage, optional)
 ```
 
 - Clients connect to a shared **room** (identified by a room ID you set in the app)
 - Text clipboard content is **AES-256-GCM encrypted** on the device — the server relays ciphertext only
-- For files, the server orchestrates a **LAN-first pull** flow: the sender serves the encrypted file over HTTP, the receiver pulls it directly over LAN; if that fails, the file is uploaded to R2 and downloaded via pre-signed URL. Both Android→PC and PC→Android directions are supported.
+- For files, the server orchestrates a **LAN-first pull** flow: the sender serves the encrypted file over HTTP, the receiver pulls it directly over LAN; if that fails, the file is uploaded to R2 and downloaded via pre-signed URL. Both mobile→PC and PC→mobile directions are supported.
 - The admin dashboard is accessible at `http://your-server:5055/dashboard` (login with `ADMIN_PASSWORD`)
 
 ### Protocol Version
