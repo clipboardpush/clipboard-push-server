@@ -324,8 +324,14 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
-        }).then(r => r.json()).then(data => {
-            saveMsg.textContent = 'Saved. Restart the server for changes to take effect.';
+        }).then(r => r.json().then(data => ({ok: r.ok, data}))).then(({ok, data}) => {
+            if (ok) {
+                saveMsg.textContent = 'Saved. Restart the server for changes to take effect.';
+                saveMsg.style.color = '';
+            } else {
+                saveMsg.textContent = 'Error: ' + (data.error || 'Unknown error');
+                saveMsg.style.color = '#fca5a5';
+            }
             saveMsg.hidden = false;
         });
     });

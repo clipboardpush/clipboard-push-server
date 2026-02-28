@@ -236,17 +236,24 @@ def register_routes(
     def save_settings():
         data = request.json or {}
         saved = []
-        for key in _SETTINGS_KEYS:
-            if key not in data:
-                continue
-            val = str(data[key]).strip()
-            # Skip masked secret placeholder — user didn't change it
-            if key in _SECRET_KEYS and set(val[4:]) == {'*'}:
-                continue
-            set_key(DOTENV_PATH, key, val)
-            saved.append(key)
-        logger.info(f'Settings updated via dashboard: {saved}')
-        return jsonify({'saved': saved, 'restart_required': True})
+        try:
+            for key in _SETTINGS_KEYS:
+                if key not in data:
+                    continue
+                val = str(data[key]).strip()
+                if key in _SECRET_KEYS and set(val[4:]) == {'*'}:
+                    continue
+                set_key(DOTENV_PATH, key, val)
+                saved.append(key)
+            logger.info(f'Settings updated via dashboard: {saved}')
+            return jsonify({'saved': saved, 'restart_required': True})
+        except PermissionError:
+            msg = f'Permission denied writing {DOTENV_PATH}. Run: chmod 664 {DOTENV_PATH}'
+            logger.error(msg)
+            return jsonify({'error': msg}), 500
+        except Exception as e:
+            logger.error(f'Failed to save settings: {e}')
+            return jsonify({'error': str(e)}), 500
 
     @app.route('/api/relay', methods=['POST'])
     def relay_message():
