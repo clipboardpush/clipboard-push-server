@@ -236,12 +236,18 @@ def register_routes(
     def save_settings():
         data = request.json or {}
         saved = []
+        # Keys that should not be saved as empty (keep default instead)
+        _REQUIRED_IF_SET = {'LOCAL_STORAGE_PATH', 'LOCAL_STORAGE_BASE_URL',
+                            'R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_BUCKET_NAME'}
         try:
             for key in _SETTINGS_KEYS:
                 if key not in data:
                     continue
                 val = str(data[key]).strip()
                 if key in _SECRET_KEYS and set(val[4:]) == {'*'}:
+                    continue
+                # Don't persist empty values for important fields — let defaults apply
+                if not val and key in _REQUIRED_IF_SET:
                     continue
                 set_key(DOTENV_PATH, key, val)
                 saved.append(key)

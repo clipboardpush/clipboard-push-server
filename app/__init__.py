@@ -118,8 +118,11 @@ s3_client = boto3.client(
 )
 
 if STORAGE_BACKEND == 'local':
-    ensure_storage_dir(LOCAL_STORAGE_PATH)
-    logger.info(f'Storage backend: local ({LOCAL_STORAGE_PATH})')
+    if LOCAL_STORAGE_PATH:
+        ensure_storage_dir(LOCAL_STORAGE_PATH)
+        logger.info(f'Storage backend: local ({LOCAL_STORAGE_PATH})')
+    else:
+        logger.error('STORAGE_BACKEND=local but LOCAL_STORAGE_PATH is empty — falling back to r2 mode')
 else:
     try:
         logger.info(f'Verifying R2 Connection to bucket: {R2_BUCKET_NAME}...')
