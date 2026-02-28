@@ -1,6 +1,6 @@
 # Clipboard Push Server
 
-A self-hosted relay server for the [Clipboard Push](https://clipboardpush.com) app — relays clipboard text and files between Android and PC over the internet or LAN.
+A self-hosted relay server for the [Clipboard Push](https://clipboardpush.com) app. It relays encrypted clipboard text and files between Android and PC clients in real time — over the internet via the relay, or directly over LAN when both devices are on the same network. All clipboard content is AES-256-GCM encrypted on the device before transmission; the server only sees ciphertext.
 
 ## Features
 
