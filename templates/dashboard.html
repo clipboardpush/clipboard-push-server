@@ -212,6 +212,7 @@
         <div class="modal-actions">
             <span class="settings-save-msg text-meta" id="settings-save-msg" hidden></span>
             <button type="button" class="btn btn-outline btn-mini" id="cancel-settings-modal">Cancel</button>
+            <button type="button" class="btn btn-outline btn-mini" id="restart-server-btn">Restart Server</button>
             <button type="button" class="btn btn-warning btn-mini" id="save-settings-btn">Save</button>
         </div>
     </div>
@@ -334,6 +335,24 @@
             }
             saveMsg.hidden = false;
         });
+    });
+
+    const restartBtn = document.getElementById('restart-server-btn');
+    restartBtn.addEventListener('click', function() {
+        if (!confirm('Restart the server now?')) return;
+        saveMsg.textContent = 'Restarting... page will reload when server is back.';
+        saveMsg.style.color = '#fde68a';
+        saveMsg.hidden = false;
+        restartBtn.disabled = true;
+        saveSettingsBtn.disabled = true;
+        fetch('/api/restart', {method: 'POST'}).catch(() => {});
+        function poll() {
+            fetch('/api/settings').then(r => {
+                if (r.ok) window.location.reload();
+                else setTimeout(poll, 1000);
+            }).catch(() => setTimeout(poll, 1000));
+        }
+        setTimeout(poll, 1500);
     });
 
     openSettingsBtn.addEventListener('click', openSettingsModal);

@@ -255,6 +255,18 @@ def register_routes(
             logger.error(f'Failed to save settings: {e}')
             return jsonify({'error': str(e)}), 500
 
+    @app.route('/api/restart', methods=['POST'])
+    @login_required
+    def restart_server():
+        import os, signal, threading
+        def _kill():
+            import time
+            time.sleep(0.4)  # allow response to be sent first
+            os.kill(os.getppid(), signal.SIGTERM)
+        threading.Thread(target=_kill, daemon=True).start()
+        logger.info('Server restart requested via dashboard')
+        return jsonify({'status': 'restarting'})
+
     @app.route('/api/relay', methods=['POST'])
     def relay_message():
         try:
