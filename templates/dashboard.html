@@ -61,9 +61,9 @@
             </article>
         </section>
 
-        <section class="r2-panel" aria-label="R2 bucket usage">
+        <section class="r2-panel" aria-label="Storage usage">
             <div class="section-head">
-                <h3>R2 Bucket Usage</h3>
+                <h3 id="r2-section-title">R2 Bucket Usage</h3>
                 <div class="r2-tools">
                     <button type="button" class="btn btn-outline btn-mini" id="r2-refresh-btn">Refresh</button>
                     <button type="button" class="btn btn-danger btn-mini" id="r2-empty-btn">Empty</button>
@@ -71,8 +71,8 @@
             </div>
             <div class="r2-grid">
                 <article class="r2-item">
-                    <p class="stat-label">Bucket</p>
-                    <p class="r2-value" id="r2-bucket-name">clipboard-push-relay</p>
+                    <p class="stat-label" id="r2-bucket-label">Bucket</p>
+                    <p class="r2-value" id="r2-bucket-name">-</p>
                 </article>
                 <article class="r2-item">
                     <p class="stat-label">Objects</p>

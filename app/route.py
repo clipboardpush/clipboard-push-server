@@ -31,6 +31,8 @@ def register_routes(
     LOCAL_STORAGE_BASE_URL,
     local_write_file,
     local_read_file,
+    local_storage_get_usage,
+    local_storage_clear,
     DOTENV_PATH,
 ):
     @app.route('/login', methods=['GET', 'POST'])
@@ -108,10 +110,20 @@ def register_routes(
     @app.route('/api/dashboard/r2_usage', methods=['GET'])
     @login_required
     def api_dashboard_r2_usage():
+        if STORAGE_BACKEND == 'local':
+            try:
+                usage = local_storage_get_usage()
+                usage['backend'] = 'local'
+                usage['updated_at_epoch_ms'] = int(pytime.time() * 1000)
+                return jsonify(usage)
+            except Exception as e:
+                logger.error(f"Failed to get local storage usage: {e}")
+                return jsonify({'error': str(e)}), 500
         if not DASHBOARD_R2_BUCKET:
             return jsonify({'error': 'R2 not configured (DASHBOARD_R2_BUCKET is empty)'}), 503
         try:
             usage = get_r2_bucket_usage(DASHBOARD_R2_BUCKET)
+            usage['backend'] = 'r2'
             usage['updated_at_epoch_ms'] = int(pytime.time() * 1000)
             return jsonify(usage)
         except Exception as e:
@@ -121,18 +133,30 @@ def register_routes(
     @app.route('/api/dashboard/r2_empty', methods=['POST'])
     @login_required
     def api_dashboard_r2_empty():
+        if STORAGE_BACKEND == 'local':
+            try:
+                result = local_storage_clear()
+                usage = local_storage_get_usage()
+                usage['backend'] = 'local'
+                return jsonify({
+                    'result': result,
+                    'usage': usage,
+                    'updated_at_epoch_ms': int(pytime.time() * 1000),
+                })
+            except Exception as e:
+                logger.error(f"Failed to clear local storage: {e}")
+                return jsonify({'error': str(e)}), 500
         if not DASHBOARD_R2_BUCKET:
             return jsonify({'error': 'R2 not configured (DASHBOARD_R2_BUCKET is empty)'}), 503
         try:
             result = empty_r2_bucket(DASHBOARD_R2_BUCKET)
             usage = get_r2_bucket_usage(DASHBOARD_R2_BUCKET)
-            return jsonify(
-                {
-                    'result': result,
-                    'usage': usage,
-                    'updated_at_epoch_ms': int(pytime.time() * 1000),
-                }
-            )
+            usage['backend'] = 'r2'
+            return jsonify({
+                'result': result,
+                'usage': usage,
+                'updated_at_epoch_ms': int(pytime.time() * 1000),
+            })
         except Exception as e:
             logger.error(f"Failed to empty R2 bucket for dashboard: {e}")
             return jsonify({'error': str(e)}), 500

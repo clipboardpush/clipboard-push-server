@@ -14,6 +14,8 @@
         statusDot: document.getElementById("connection-status"),
         connectionText: document.getElementById("connection-text"),
         roomTitle: document.getElementById("current-room-title"),
+        r2SectionTitle: document.getElementById("r2-section-title"),
+        r2BucketLabel: document.getElementById("r2-bucket-label"),
         r2BucketName: document.getElementById("r2-bucket-name"),
         r2ObjectsCount: document.getElementById("r2-objects-count"),
         r2TotalSize: document.getElementById("r2-total-size"),
@@ -144,12 +146,16 @@
     });
 
     elements.r2EmptyBtn?.addEventListener("click", async () => {
-        const ok = window.confirm("This will permanently delete all objects in clipboard-push-relay. Continue?");
+        const isLocal = elements.r2SectionTitle?.textContent?.includes("Local");
+        const confirmMsg = isLocal
+            ? "This will permanently delete all files in local storage. Continue?"
+            : "This will permanently delete all objects in the R2 bucket. Continue?";
+        const ok = window.confirm(confirmMsg);
         if (!ok) {
             return;
         }
 
-        setR2Status("Emptying bucket...", true);
+        setR2Status(isLocal ? "Clearing local storage..." : "Emptying bucket...", true);
         setR2ButtonsDisabled(true);
 
         try {
@@ -161,16 +167,16 @@
             });
             const payload = await response.json();
             if (!response.ok) {
-                throw new Error(payload?.error || "Failed to empty bucket.");
+                throw new Error(payload?.error || "Failed to empty storage.");
             }
 
             fillR2Usage(payload?.usage || {}, payload?.updated_at_epoch_ms);
-            setR2Status("Bucket emptied.", false);
-            log("sys", "R2", "clipboard-push-relay emptied from dashboard.", "dashboard_room");
+            setR2Status(isLocal ? "Local storage cleared." : "Bucket emptied.", false);
+            log("sys", "Storage", isLocal ? "Local storage cleared from dashboard." : "R2 bucket emptied from dashboard.", "dashboard_room");
         } catch (error) {
             const message = error instanceof Error ? error.message : "Unknown error";
             setR2Status(`Empty failed: ${message}`, false, true);
-            log("err", "R2", `Empty failed: ${message}`, "dashboard_room");
+            log("err", "Storage", `Empty failed: ${message}`, "dashboard_room");
         } finally {
             setR2ButtonsDisabled(false);
         }
@@ -271,20 +277,27 @@
     }
 
     function fillR2Usage(usage, updatedAtEpochMs) {
+        const isLocal = usage?.backend === "local";
+        if (elements.r2SectionTitle) {
+            elements.r2SectionTitle.textContent = isLocal ? "Local Storage" : "R2 Bucket Usage";
+        }
+        if (elements.r2BucketLabel) {
+            elements.r2BucketLabel.textContent = isLocal ? "Path" : "Bucket";
+        }
         if (elements.r2BucketName) {
-            elements.r2BucketName.textContent = String(usage?.bucket || "clipboard-push-relay");
+            elements.r2BucketName.textContent = String(usage?.bucket || "-");
         }
         if (elements.r2ObjectsCount) {
             elements.r2ObjectsCount.textContent = numberFmt(usage?.objects_count);
         }
         if (elements.r2TotalSize) {
-            elements.r2TotalSize.textContent = String(usage?.total_human || "-");
+            elements.r2TotalSize.textContent = isLocal ? "-" : String(usage?.total_human || "-");
         }
         if (elements.r2TotalBytes) {
-            elements.r2TotalBytes.textContent = numberFmt(usage?.total_bytes);
+            elements.r2TotalBytes.textContent = isLocal ? "-" : numberFmt(usage?.total_bytes);
         }
         if (elements.r2ScannedObjects) {
-            elements.r2ScannedObjects.textContent = numberFmt(usage?.scanned_objects);
+            elements.r2ScannedObjects.textContent = isLocal ? "-" : numberFmt(usage?.scanned_objects);
         }
 
         const updatedAt = updatedAtEpochMs != null ? new Date(updatedAtEpochMs) : new Date();

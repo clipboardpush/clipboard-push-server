@@ -4,6 +4,15 @@ import os
 import time
 
 
+def _human_readable(size_bytes):
+    b = float(size_bytes)
+    for unit in ('B', 'KB', 'MB', 'GB'):
+        if b < 1024:
+            return f"{b:.1f} {unit}"
+        b /= 1024
+    return f"{b:.1f} TB"
+
+
 def ensure_storage_dir(path):
     os.makedirs(path, exist_ok=True)
 
@@ -35,6 +44,50 @@ def read_file(storage_path, file_key):
             pass
     with open(file_path, 'rb') as f:
         return f.read(), content_type
+
+
+def get_local_storage_usage(storage_path):
+    """Returns storage stats dict compatible with R2 usage response format."""
+    if not storage_path or not os.path.isdir(storage_path):
+        return {
+            'bucket': storage_path or '(not configured)',
+            'objects_count': 0,
+            'total_bytes': 0,
+            'total_human': '0 B',
+            'scanned_objects': 0,
+        }
+    total_bytes = 0
+    objects_count = 0
+    for entry in os.scandir(storage_path):
+        if entry.is_file() and not entry.name.endswith('.meta'):
+            total_bytes += entry.stat().st_size
+            objects_count += 1
+    return {
+        'bucket': storage_path,
+        'objects_count': objects_count,
+        'total_bytes': total_bytes,
+        'total_human': _human_readable(total_bytes),
+        'scanned_objects': objects_count,
+    }
+
+
+def clear_storage(storage_path):
+    """Delete all files in storage. Returns {'deleted_objects': n, 'reclaimed_human': '...'}."""
+    if not storage_path or not os.path.isdir(storage_path):
+        return {'deleted_objects': 0, 'reclaimed_human': '0 B'}
+    deleted = 0
+    reclaimed = 0
+    for entry in os.scandir(storage_path):
+        if entry.is_file():
+            try:
+                size = entry.stat().st_size
+                os.remove(entry.path)
+                if not entry.name.endswith('.meta'):
+                    deleted += 1
+                    reclaimed += size
+            except Exception:
+                pass
+    return {'deleted_objects': deleted, 'reclaimed_human': _human_readable(reclaimed)}
 
 
 def purge_old_files(storage_path, max_age_s=3600):

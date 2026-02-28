@@ -7,10 +7,11 @@ A self-hosted relay server for the [Clipboard Push](https://clipboardpush.com) a
 - **Real-time clipboard push** via Socket.IO (text and files)
 - **LAN-first file transfer** — direct device-to-device when on the same network, with automatic cloud fallback
 - **AES-256-GCM end-to-end encryption** — the server never sees plaintext clipboard content
-- **Cloudflare R2 file relay** — temporary pre-signed URLs for cross-network file transfers
-- **Admin dashboard** — view connected devices, room states, transfer activity, and live logs
+- **Flexible file storage** — Cloudflare R2 (pre-signed URLs) or local disk; switchable from the dashboard
+- **Admin dashboard** — view connected devices, room states, transfer activity, live logs, and storage stats
+- **In-dashboard settings** — configure storage backend, R2 credentials, and server options without editing files
 - **Room-based routing** — up to 2 devices per room; oldest device is evicted when limit exceeded
-- **Automatic R2 cleanup** — bucket purged every 60 minutes to minimise storage costs
+- **Automatic storage cleanup** — files purged every 60 minutes (R2 bucket or local uploads folder)
 - **Docker support** — single `docker-compose up` deployment
 
 ## Quick Start (Docker)
@@ -37,23 +38,30 @@ Copy `.env.example` to `.env` and fill in the following:
 |---|---|---|
 | `FLASK_SECRET_KEY` | Yes | Random secret for Flask sessions. Generate with `python3 -c "import secrets; print(secrets.token_hex(32))"` |
 | `ADMIN_PASSWORD` | Yes | Initial admin dashboard password (hashed on first use) |
-| `R2_ACCOUNT_ID` | For file relay | Cloudflare account ID |
-| `R2_ACCESS_KEY_ID` | For file relay | R2 API token key ID |
-| `R2_SECRET_ACCESS_KEY` | For file relay | R2 API token secret |
-| `R2_BUCKET_NAME` | For file relay | R2 bucket name for file storage |
-| `DASHBOARD_R2_BUCKET` | For dashboard | R2 bucket name shown in dashboard stats (can be same as above) |
+| `STORAGE_BACKEND` | No | `r2` (default) or `local` — where to store relay files |
+| `LOCAL_STORAGE_PATH` | If `local` | Absolute path for uploaded files (default: `data/uploads`) |
+| `LOCAL_STORAGE_BASE_URL` | If `local` | Public base URL of this server, used in download links (e.g. `https://your.domain.com`) |
+| `R2_ACCOUNT_ID` | If `r2` | Cloudflare account ID |
+| `R2_ACCESS_KEY_ID` | If `r2` | R2 API token key ID |
+| `R2_SECRET_ACCESS_KEY` | If `r2` | R2 API token secret |
+| `R2_BUCKET_NAME` | If `r2` | R2 bucket name for file storage |
+| `DASHBOARD_R2_BUCKET` | If `r2` | R2 bucket name shown in dashboard stats (can be same as above) |
 | `FLASK_DEBUG` | No | Set to `1` for debug mode (never use in production) |
 
-**Text-only mode:** If you don't configure R2, the server works fine for clipboard text sync. File transfer will be unavailable.
+**Text-only mode:** If you don't configure any storage backend, the server works fine for clipboard text sync. File transfer will be unavailable.
 
-**R2 scheduled cleanup:** When R2 is configured, the server automatically deletes all objects from the bucket every 60 minutes. This keeps storage costs near zero since transferred files are only needed briefly during the transfer window.
+**Local storage mode:** Set `STORAGE_BACKEND=local` to store relay files on the server's own disk instead of R2. No cloud account needed. The dashboard shows the current file count and lets you clear all files manually.
+
+**Automatic storage cleanup:** Every 60 minutes the server purges all relay files — deletes all R2 objects (when using R2) or all files in `LOCAL_STORAGE_PATH` (when using local). Transferred files are only needed briefly, so this keeps storage usage near zero.
+
+> Settings can also be changed live from the **Settings** button in the dashboard without editing `.env` directly. Changes take effect after a server restart (there is a Restart button in the settings panel).
 
 ## Architecture
 
 ```
 Android App  ── Socket.IO (AES-256-GCM encrypted) ──► Relay Server ◄── Socket.IO (AES-256-GCM encrypted) ──  PC Client
                                                             │
-                                                            └── R2 (file storage, optional)
+                                                            └── R2 or local disk (file storage, optional)
 ```
 
 - Clients connect to a shared **room** (identified by a room ID you set in the app)

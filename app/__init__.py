@@ -20,7 +20,9 @@ from .auth import User, load_password_hash, register_user_loader, verify_passwor
 from .route import register_routes
 from .services.r2_service import empty_r2_bucket, get_r2_bucket_usage
 from .services.local_storage_service import (
+    clear_storage as _local_clear_storage,
     ensure_storage_dir,
+    get_local_storage_usage as _get_local_storage_usage,
     make_file_key,
     purge_old_files,
     read_file as local_read_file,
@@ -140,6 +142,14 @@ def empty_r2_bucket_bound(bucket_name):
     return empty_r2_bucket(s3_client, bucket_name)
 
 
+def local_storage_get_usage_bound():
+    return _get_local_storage_usage(LOCAL_STORAGE_PATH)
+
+
+def local_storage_clear_bound():
+    return _local_clear_storage(LOCAL_STORAGE_PATH)
+
+
 register_routes(
     app,
     ADMIN_PASSWORD=ADMIN_PASSWORD,
@@ -164,6 +174,8 @@ register_routes(
     LOCAL_STORAGE_BASE_URL=LOCAL_STORAGE_BASE_URL,
     local_write_file=local_write_file,
     local_read_file=local_read_file,
+    local_storage_get_usage=local_storage_get_usage_bound,
+    local_storage_clear=local_storage_clear_bound,
     DOTENV_PATH=SETTINGS_OVERRIDE_PATH,
 )
 
