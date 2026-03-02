@@ -5,6 +5,10 @@
 [![Flask](https://img.shields.io/badge/Flask-3.0-lightgrey.svg)](https://flask.palletsprojects.com)
 [![Docker](https://img.shields.io/badge/Docker-supported-2496ED.svg)](https://www.docker.com)
 
+**Related:** [Website](https://clipboardpush.com) · [Android App](https://github.com/yelosheng/clipboard-push-android) · [PC Client (Windows)](https://github.com/yelosheng/clipboard-push-win32)
+
+---
+
 A self-hosted relay server for the [Clipboard Push](https://clipboardpush.com) app. It relays encrypted clipboard text and files between mobile and PC clients in real time — over the internet via the relay, or directly over LAN when both devices are on the same network. All clipboard content is AES-256-GCM encrypted on the device before transmission; the server only sees ciphertext.
 
 ## Features
