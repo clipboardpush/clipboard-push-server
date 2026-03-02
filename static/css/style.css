@@ -266,6 +266,41 @@ input::placeholder {
     padding-top: 12px;
     font-size: 0.8rem;
     color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.footer-links {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.footer-link:hover {
+    color: var(--text-main);
+}
+
+.footer-link img {
+    display: block;
+    border-radius: 2px;
+    opacity: 0.65;
+    transition: opacity 0.15s;
+}
+
+.footer-link:hover img {
+    opacity: 1;
 }
 
 .dashboard-layout {
