@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Connection History | Clipboard Man{% endblock %}
+{% block body_class %}page-history{% endblock %}
+
+{% block content %}
+<div class="main-view" style="padding: 1.5rem;">
+
+    <!-- Header -->
+    <header class="view-header">
+        <div>
+            <p class="kicker">Analytics</p>
+            <h2>Connection History</h2>
+        </div>
+        <div class="header-right">
+            <a class="btn btn-outline btn-mini" href="{{ url_for('dashboard') }}">← Dashboard</a>
+        </div>
+    </header>
+
+    <!-- Summary stats -->
+    <section class="stats-grid" aria-label="Summary">
+        <article class="stat-box">
+            <p class="stat-label">Unique Clients</p>
+            <p class="stat-number" id="h-unique-clients">-</p>
+        </article>
+        <article class="stat-box">
+            <p class="stat-label">Total Sessions</p>
+            <p class="stat-number" id="h-total-sessions">-</p>
+        </article>
+        <article class="stat-box">
+            <p class="stat-label">Countries</p>
+            <p class="stat-number" id="h-countries">-</p>
+        </article>
+    </section>
+
+    <!-- Charts row: Peak Hours + Daily Trend -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;">
+        <section class="r2-panel">
+            <div class="section-head"><h3>Peak Hours (UTC)</h3></div>
+            <div style="padding:.75rem 0;"><canvas id="chart-hourly" height="180"></canvas></div>
+        </section>
+        <section class="r2-panel">
+            <div class="section-head"><h3>Daily Trend (Last 30 Days)</h3></div>
+            <div style="padding:.75rem 0;"><canvas id="chart-daily" height="180"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Country chart -->
+    <section class="r2-panel" style="margin-top:1rem;">
+        <div class="section-head"><h3>Clients by Country</h3></div>
+        <div style="padding:.75rem 0; max-height:320px;">
+            <canvas id="chart-countries"></canvas>
+        </div>
+    </section>
+
+    <!-- Client table -->
+    <section class="table-wrap" style="margin-top:1rem;">
+        <div class="section-head">
+            <h3>All Clients</h3>
+            <div>
+                <input type="search" id="h-search" placeholder="Search device, country, city, room…"
+                    style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-main);
+                           border-radius:6px;padding:.3rem .7rem;font-size:.8rem;width:240px;">
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="clean-table">
+                <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Room</th>
+                        <th>First Seen</th>
+                        <th>Last Seen</th>
+                        <th>Sessions</th>
+                    </tr>
+                </thead>
+                <tbody id="h-client-tbody">
+                    <tr><td colspan="7" class="empty-cell">Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="h-pagination" style="display:flex;gap:.4rem;flex-wrap:wrap;padding:.75rem 0;"></div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/history.js') }}?v=20260309a"></script>
+{% endblock %}
