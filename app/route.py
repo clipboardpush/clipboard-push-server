@@ -34,6 +34,12 @@ def register_routes(
     local_storage_get_usage,
     local_storage_clear,
     DOTENV_PATH,
+    HISTORY_DB_PATH=None,
+    history_query_summary=None,
+    history_query_clients=None,
+    history_query_hourly=None,
+    history_query_daily=None,
+    history_query_countries=None,
 ):
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -336,3 +342,48 @@ def register_routes(
         except Exception as e:
             logger.error(f"Relay error: {e}")
             return jsonify({'error': str(e)}), 500
+
+    @app.route('/history')
+    @login_required
+    def history_page():
+        return render_template('history.html')
+
+    @app.route('/api/history/summary')
+    @login_required
+    def api_history_summary():
+        if not HISTORY_DB_PATH:
+            return jsonify({'error': 'history not configured'}), 503
+        return jsonify(history_query_summary(HISTORY_DB_PATH))
+
+    @app.route('/api/history/clients')
+    @login_required
+    def api_history_clients():
+        if not HISTORY_DB_PATH:
+            return jsonify({'error': 'history not configured'}), 503
+        search = request.args.get('search', '').strip()
+        limit = min(int(request.args.get('limit', 100)), 500)
+        offset = int(request.args.get('offset', 0))
+        rows, total = history_query_clients(HISTORY_DB_PATH, search=search, limit=limit, offset=offset)
+        return jsonify({'clients': rows, 'total': total})
+
+    @app.route('/api/history/hourly')
+    @login_required
+    def api_history_hourly():
+        if not HISTORY_DB_PATH:
+            return jsonify({'error': 'history not configured'}), 503
+        return jsonify(history_query_hourly(HISTORY_DB_PATH))
+
+    @app.route('/api/history/daily')
+    @login_required
+    def api_history_daily():
+        if not HISTORY_DB_PATH:
+            return jsonify({'error': 'history not configured'}), 503
+        days = int(request.args.get('days', 30))
+        return jsonify(history_query_daily(HISTORY_DB_PATH, days=days))
+
+    @app.route('/api/history/countries')
+    @login_required
+    def api_history_countries():
+        if not HISTORY_DB_PATH:
+            return jsonify({'error': 'history not configured'}), 503
+        return jsonify(history_query_countries(HISTORY_DB_PATH))

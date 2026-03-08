@@ -199,6 +199,12 @@ register_routes(
     local_storage_get_usage=local_storage_get_usage_bound,
     local_storage_clear=local_storage_clear_bound,
     DOTENV_PATH=SETTINGS_OVERRIDE_PATH,
+    HISTORY_DB_PATH=HISTORY_DB_PATH,
+    history_query_summary=history_query_summary_fn,
+    history_query_clients=history_query_clients_fn,
+    history_query_hourly=history_query_hourly_fn,
+    history_query_daily=history_query_daily_fn,
+    history_query_countries=history_query_countries_fn,
 )
 
 def _record_join(*, client_id, device_name, client_type, room_id):
